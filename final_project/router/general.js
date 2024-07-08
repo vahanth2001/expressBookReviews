@@ -24,8 +24,8 @@ public_users.get('/', (req, res) => {
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn', (req, res) => {
-  const isbn = req.params.isbn;
-  const book = books.find(book => book.isbn === isbn);
+  const isbn = parseInt(req.params.isbn);
+  const book = books[isbn];
   if (!book) {
     return res.status(404).json({ message: "Book not found" });
   }
@@ -34,8 +34,8 @@ public_users.get('/isbn/:isbn', (req, res) => {
 
 // Get book details based on author
 public_users.get('/author/:author', (req, res) => {
-  const author = req.params.author;
-  const booksByAuthor = books.filter(book => book.author.toLowerCase() === author.toLowerCase());
+  const author = req.params.author.toLowerCase();
+  const booksByAuthor = Object.values(books).filter(book => book.author.toLowerCase() === author);
   if (booksByAuthor.length === 0) {
     return res.status(404).json({ message: "No books found by this author" });
   }
@@ -44,8 +44,8 @@ public_users.get('/author/:author', (req, res) => {
 
 // Get all books based on title
 public_users.get('/title/:title', (req, res) => {
-  const title = req.params.title;
-  const booksByTitle = books.filter(book => book.title.toLowerCase().includes(title.toLowerCase()));
+  const title = req.params.title.toLowerCase();
+  const booksByTitle = Object.values(books).filter(book => book.title.toLowerCase().includes(title));
   if (booksByTitle.length === 0) {
     return res.status(404).json({ message: "No books found with this title" });
   }
@@ -54,8 +54,8 @@ public_users.get('/title/:title', (req, res) => {
 
 // Get book review
 public_users.get('/review/:isbn', (req, res) => {
-  const isbn = req.params.isbn;
-  const book = books.find(book => book.isbn === isbn);
+  const isbn = parseInt(req.params.isbn);
+  const book = books[isbn];
   if (!book || !book.reviews) {
     return res.status(404).json({ message: "No reviews found for this book" });
   }

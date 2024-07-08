@@ -5,8 +5,6 @@ const regd_users = express.Router();
 
 let users = [];
 
-const SECRET_KEY = 'your_jwt_secret_key'; // Replace with your actual secret key
-
 // Check if the username is valid
 const isValid = (username) => {
   return users.some(user => user.username === username);
@@ -34,7 +32,7 @@ regd_users.post("/login", (req, res) => {
   }
 
   // Generate JWT token
-  const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
+  const token = jwt.sign({ username }, 'your_jwt_secret_key', { expiresIn: '1h' });
   return res.status(200).json({ message: "Login successful", token });
 });
 
@@ -46,12 +44,11 @@ regd_users.use("/auth/*", (req, res, next) => {
     return res.status(403).json({ message: 'No token provided.' });
   }
 
-  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+  jwt.verify(token, 'your_jwt_secret_key', (err, decoded) => {
     if (err) {
       return res.status(401).json({ message: 'Failed to authenticate token.' });
     }
 
-    // Save the decoded user information to request object for use in other routes
     req.user = decoded;
     next();
   });
@@ -66,18 +63,18 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     return res.status(400).json({ message: "Review is required" });
   }
 
-  const book = books.find(book => book.isbn === isbn);
+  const book = books[isbn];
 
   if (!book) {
     return res.status(404).json({ message: "Book not found" });
   }
 
   if (!book.reviews) {
-    book.reviews = [];
+    book.reviews = {};
   }
 
   const username = req.user.username;
-  book.reviews.push({ username, review });
+  book.reviews[username] = review;
 
   return res.status(200).json({ message: "Review added successfully" });
 });
