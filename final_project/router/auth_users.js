@@ -38,6 +38,25 @@ regd_users.post("/login", (req, res) => {
   return res.status(200).json({ message: "Login successful", token });
 });
 
+// Middleware to authenticate the JWT token
+regd_users.use("/auth/*", (req, res, next) => {
+  const token = req.headers['authorization'];
+
+  if (!token) {
+    return res.status(403).json({ message: 'No token provided.' });
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Failed to authenticate token.' });
+    }
+
+    // Save the decoded user information to request object for use in other routes
+    req.user = decoded;
+    next();
+  });
+});
+
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
   const { isbn } = req.params;
@@ -57,30 +76,10 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     book.reviews = [];
   }
 
-  // Assuming username is added in req.user by JWT middleware
   const username = req.user.username;
   book.reviews.push({ username, review });
 
   return res.status(200).json({ message: "Review added successfully" });
-});
-
-// Middleware to authenticate the JWT token
-regd_users.use("/auth/*", (req, res, next) => {
-  const token = req.headers['authorization'];
-
-  if (!token) {
-    return res.status(403).json({ message: 'No token provided.' });
-  }
-
-  jwt.verify(token, SECRET_KEY, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ message: 'Failed to authenticate token.' });
-    }
-
-    // Save the decoded user information to request object for use in other routes
-    req.user = decoded;
-    next();
-  });
 });
 
 module.exports.authenticated = regd_users;
